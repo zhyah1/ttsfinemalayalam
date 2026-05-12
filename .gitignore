@@ -1,0 +1,22 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Model weights and datasets (TOO LARGE FOR GITHUB)
+Qwen3-TTS-Base/
+Qwen3-TTS/
+malayalam_data/
+output_malayalam_lora/
+
+# User-specific / temp files
+fix_notebook.py
+.ipynb_checkpoints/
+*.wav
+*.zip
+*.jsonl
