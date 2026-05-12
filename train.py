@@ -77,9 +77,15 @@ def compute_loss(qwen_wrapper, batch):
     attention_mask = batch['attention_mask'].to(model.device)
 
     with torch.no_grad():
-        # Correct path for speaker_encoder
-        encoder = qwen_wrapper.speaker_encoder if hasattr(qwen_wrapper, 'speaker_encoder') else qwen_wrapper.model.talker.speaker_encoder
-        spk_emb = encoder(ref_mels.to(dtype=next(model.parameters()).dtype)).detach()
+        # Correct path for speaker_encoder is in the main model
+        if hasattr(qwen_wrapper.model, 'speaker_encoder'):
+            encoder = qwen_wrapper.model.speaker_encoder
+        elif hasattr(qwen_wrapper, 'speaker_encoder'):
+            encoder = qwen_wrapper.speaker_encoder
+        else:
+            raise AttributeError("Could not find speaker_encoder in model or wrapper.")
+            
+        spk_emb = encoder(ref_mels.to(dtype=next(encoder.parameters()).dtype)).detach()
 
     te = model.talker.model.text_embedding(input_ids[:,:,0])
     if hasattr(model.talker, 'text_projection'): te = model.talker.text_projection(te)
