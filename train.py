@@ -77,7 +77,7 @@ def compute_loss(qwen_wrapper, batch):
     attention_mask = batch['attention_mask'].to(model.device)
 
     with torch.no_grad():
-        # Correct path for speaker_encoder is in the main model
+        # --- FIXED PATH ---
         if hasattr(qwen_wrapper.model, 'speaker_encoder'):
             encoder = qwen_wrapper.model.speaker_encoder
         elif hasattr(qwen_wrapper, 'speaker_encoder'):
