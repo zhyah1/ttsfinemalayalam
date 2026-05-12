@@ -5,7 +5,7 @@ from qwen_tts.inference.qwen3_tts_model import Qwen3TTSModel
 
 # -- Config --
 MODEL_DIR = '/content/ttsfine/Qwen3-TTS-Base'
-LORA_DIR = '/content/output_malayalam_lora/checkpoint-epoch-0' # Change to your latest epoch
+LORA_DIR = '/content/output-malayalam-lora' # Matches your actual output folder
 OUTPUT_WAV = 'malayalam_output.wav'
 
 def run_inference(text, ref_audio_path):
