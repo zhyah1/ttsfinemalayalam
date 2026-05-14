@@ -2,7 +2,7 @@ import os
 os.environ["PATH"] = r"C:\Users\siyah\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.1.1-full_build\bin" + os.pathsep + os.environ["PATH"]
 
 import json
-
+import re
 import argparse
 import torch
 import soundfile as sf
@@ -12,6 +12,20 @@ from datasets import load_dataset, Audio
 
 from tqdm import tqdm
 from qwen_tts import Qwen3TTSTokenizer
+
+
+def clean_malayalam_text(text: str) -> str:
+    """
+    Light normalisation for Malayalam TTS text:
+    - Strips ASCII punctuation that confuse the LLM (but keeps Malayalam punctuation).
+    - Collapses multiple spaces.
+    - Does NOT transliterate — raw Malayalam script is used directly.
+    """
+    # Remove ASCII symbols that are not meaningful phonetically
+    text = re.sub(r'[\x00-\x1F\x7F]', '', text)          # control chars
+    text = re.sub(r'["\[\]{}|<>]', '', text)              # stray ASCII brackets
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text
 
 def prepare_dataset(dataset_name, output_dir, tokenizer_path, split_ratio=0.9, batch_size=32):
     # 1. Setup
@@ -72,10 +86,13 @@ def prepare_dataset(dataset_name, output_dir, tokenizer_path, split_ratio=0.9, b
             wav_path = os.path.join(audio_dir, filename)
             sf.write(wav_path, waveform, TARGET_SR)
             
+            text = clean_malayalam_text(text)
+
             metadata = {
                 "audio": os.path.abspath(wav_path),
                 "text": text,
                 "ref_audio": os.path.abspath(wav_path),
+                "language": "Malayalam",
             }
             
             batch_audios.append(wav_path)
@@ -132,6 +149,14 @@ if __name__ == "__main__":
     parser.add_argument("--output_dir", type=str, default="malayalam_data")
     parser.add_argument("--tokenizer_path", type=str, default="Qwen/Qwen3-TTS-Tokenizer-12Hz")
     parser.add_argument("--batch_size", type=int, default=16)
+    parser.add_argument("--split_ratio", type=float, default=0.9,
+                        help="Fraction of data used for training (rest = validation)")
     args = parser.parse_args()
-    
-    prepare_dataset(args.dataset_name, args.output_dir, args.tokenizer_path, batch_size=args.batch_size)
+
+    prepare_dataset(
+        args.dataset_name,
+        args.output_dir,
+        args.tokenizer_path,
+        split_ratio=args.split_ratio,
+        batch_size=args.batch_size,
+    )
